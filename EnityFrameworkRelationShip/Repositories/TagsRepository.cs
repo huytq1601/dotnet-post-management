@@ -16,7 +16,10 @@ namespace EnityFrameworkRelationShip.Repositories
 
         public async Task<IEnumerable<Tag>> GetAllTagsAsync()
         {
-            return await _context.Tags.ToListAsync();
+            return await _context.Tags
+                .Where(t => !t.IsDeleted)
+                .ToListAsync();
+
         }
     }
 }

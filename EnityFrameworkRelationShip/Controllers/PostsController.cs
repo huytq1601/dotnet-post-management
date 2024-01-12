@@ -95,7 +95,7 @@ namespace EnityFrameworkRelationShip.Controllers
             bool deleteResult = await _postsService.DeletePostAsync(id);
             if (!deleteResult)
             {
-                return NotFound();
+                return NotFound($"Post with ID: {id} not found.");
             }
 
             return NoContent(); // Returns a 204 No Content response, indicating successful deletion without any content to return.
