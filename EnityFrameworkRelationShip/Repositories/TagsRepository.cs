@@ -1,0 +1,22 @@
+﻿using EnityFrameworkRelationShip.Data;
+using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace EnityFrameworkRelationShip.Repositories
+{
+    public class TagsRepository: ITagsRepository
+    {
+        private readonly DataContext _context;
+
+        public TagsRepository(DataContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<Tag>> GetAllTagsAsync()
+        {
+            return await _context.Tags.ToListAsync();
+        }
+    }
+}
