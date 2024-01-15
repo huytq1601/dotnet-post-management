@@ -2,8 +2,10 @@ using AutoMapper;
 using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Extensions;
 using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Models;
 using EnityFrameworkRelationShip.Repositories;
 using EnityFrameworkRelationShip.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -12,6 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -40,10 +47,12 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var myDbContext = services.GetRequiredService<DataContext>();
 
     // Run the seeding method
     await DatabaseSeeder.SeedDatabaseAsync(myDbContext);
+    await DatabaseSeeder.SeedRolesAsync(roleManager);
 }
 
 app.UseHttpsRedirection();

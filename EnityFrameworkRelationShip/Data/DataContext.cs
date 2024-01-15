@@ -1,9 +1,10 @@
 ﻿using EnityFrameworkRelationShip.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnityFrameworkRelationShip.Data
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<ApplicationUser>
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options){ }
 
@@ -14,6 +15,8 @@ namespace EnityFrameworkRelationShip.Data
         // Configure the many-to-many relationship
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             // Configure the many-to-many join entity
             modelBuilder.Entity<PostTag>()
                 .HasKey(pt => new { pt.PostId, pt.TagId });

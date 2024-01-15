@@ -16,6 +16,7 @@ namespace EnityFrameworkRelationShip.Extensions
         public static IServiceCollection AddBusinessServices(this IServiceCollection services)
         {
             services.AddScoped<IPostsService, PostsService>();
+            services.AddScoped<IAuthService, AuthService>();
             return services;
         }
     }

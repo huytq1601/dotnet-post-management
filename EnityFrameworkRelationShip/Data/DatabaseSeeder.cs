@@ -1,4 +1,5 @@
 ﻿using EnityFrameworkRelationShip.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnityFrameworkRelationShip.Data
@@ -44,6 +45,26 @@ namespace EnityFrameworkRelationShip.Data
             }
 
             await context.SaveChangesAsync();
+        }
+
+        public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+        {
+            string[] roleNames = { "Admin", "User", "Operator" };
+
+            foreach (var roleName in roleNames)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    IdentityRole role = new IdentityRole(roleName);
+                    role.NormalizedName = roleName.ToUpper();
+                    var roleResult = await roleManager.CreateAsync(role);
+
+                    if (!roleResult.Succeeded)
+                    {
+                        throw new Exception("Failed to create role: " + roleName);
+                    }
+                }
+            }
         }
     }
 }
