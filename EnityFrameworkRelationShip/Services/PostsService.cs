@@ -12,8 +12,8 @@ namespace EnityFrameworkRelationShip.Services
 
         public PostsService(IMapper mapper, IPostsRepository postsRepository)
         {
-            this._mapper = mapper;
-            this._postsRepository = postsRepository;
+            _mapper = mapper;
+            _postsRepository = postsRepository;
         }
 
         public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync()

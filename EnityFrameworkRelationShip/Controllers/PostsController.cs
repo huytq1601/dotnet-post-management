@@ -3,6 +3,7 @@ using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -53,6 +54,7 @@ namespace EnityFrameworkRelationShip.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<PostWithTagsDto>> CreatePost(PostDto postDto)
         {
             if (postDto == null)
@@ -73,6 +75,7 @@ namespace EnityFrameworkRelationShip.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdatePost(Guid id, UpdatePostDto updatePostDto)
         {
             if (updatePostDto == null || updatePostDto.Id != id)
@@ -90,6 +93,7 @@ namespace EnityFrameworkRelationShip.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles ="Administrator")]
         public async Task<IActionResult> DeletePost(Guid id)
         {
             bool deleteResult = await _postsService.DeletePostAsync(id);

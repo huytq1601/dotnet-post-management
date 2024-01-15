@@ -5,9 +5,9 @@ using EnityFrameworkRelationShip.Models;
 
 namespace EnityFrameworkRelationShip.Mappings
 {
-    public class MyMappingProfile: Profile
+    public class MappingProfile: Profile
     {
-        public MyMappingProfile()
+        public MappingProfile()
         {
             CreateMap<Tag, TagDto>().ReverseMap();
             CreateMap<Post, PostWithTagsDto>()
