@@ -73,11 +73,12 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var myDbContext = services.GetRequiredService<DataContext>();
 
     // Run the seeding method
-    await DatabaseSeeder.SeedDatabaseAsync(myDbContext);
     await DatabaseSeeder.SeedRolesAsync(roleManager);
+    await DatabaseSeeder.SeedDatabaseAsync(myDbContext, userManager);
 }
 
 app.UseHttpsRedirection();

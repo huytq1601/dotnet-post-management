@@ -1,7 +1,6 @@
-﻿
-using EnityFrameworkRelationShip.Models;
+﻿using EnityFrameworkRelationShip.Models;
 
-namespace EnityFrameworkRelationShip.Interfaces
+namespace EnityFrameworkRelationShip.Interfaces.Repository
 {
     public interface ITagsRepository
     {

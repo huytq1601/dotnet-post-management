@@ -1,6 +1,6 @@
 ﻿using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Interfaces.Repository;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -63,7 +63,7 @@ namespace EnityFrameworkRelationShip.Repositories
             return post;
         }
 
-        public async Task<Post> CreatePostAsync(PostDto postDto)
+        public async Task<Post> CreatePostAsync(PostDto postDto, string userId)
         {
             if(postDto == null)
             {
@@ -74,7 +74,8 @@ namespace EnityFrameworkRelationShip.Repositories
             {
                 Title = postDto.Title,
                 Content = postDto.Content,
-                DatePublished = DateTime.Now
+                DatePublished = DateTime.Now,
+                UserId = userId
             };
 
             var tagNames = postDto.TagNames ?? new List<string>();

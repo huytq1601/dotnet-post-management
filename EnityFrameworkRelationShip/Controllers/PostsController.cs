@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Interfaces.Service;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Security.Claims;
 
 namespace EnityFrameworkRelationShip.Controllers
 {
@@ -29,7 +30,7 @@ namespace EnityFrameworkRelationShip.Controllers
             if (!string.IsNullOrWhiteSpace(tag))
             {
                 // Fetch posts by tag if the tag parameter is provided
-                postWithTagsDtos = await _postsService.GetPostsByTagAsync(tag);
+                postWithTagsDtos = await _postsService.GetAllPostsAsync(tag);
             }
             else
             {
@@ -64,7 +65,13 @@ namespace EnityFrameworkRelationShip.Controllers
 
             try
             {
-                var postWithTags = await _postsService.CreatePostAsync(postDto);
+                string userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value ?? string.Empty;
+                if(userId.Length == 0)
+                {
+                    return Unauthorized();
+                }
+
+                var postWithTags = await _postsService.CreatePostAsync(postDto, userId);
                 return CreatedAtAction(nameof(GetPost), new { id = postWithTags.Id }, postWithTags);
             }
             catch(Exception ex)
@@ -93,7 +100,7 @@ namespace EnityFrameworkRelationShip.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles ="Administrator")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> DeletePost(Guid id)
         {
             bool deleteResult = await _postsService.DeletePostAsync(id);

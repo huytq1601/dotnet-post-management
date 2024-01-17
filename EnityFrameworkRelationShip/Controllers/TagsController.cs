@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Dtos.Tag;
 using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Interfaces.Repository;
+using EnityFrameworkRelationShip.Interfaces.Service;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,21 +14,18 @@ namespace EnityFrameworkRelationShip.Controllers
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly ITagsRepository _tagsRepository;
-        private readonly IMapper _mapper;
+        private readonly ITagsService _tagsService;
 
-        public TagsController(ITagsRepository tagsRepository, IMapper mapper)
+        public TagsController(ITagsService tagsService)
         {
-            _tagsRepository = tagsRepository;
-            _mapper = mapper;
+            _tagsService = tagsService;
         }
 
         // GET: api/Tags
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TagDto>>> GetTags()
         {
-            var tags = await _tagsRepository.GetAllTagsAsync();
-            var tagTdos = _mapper.Map<List<TagDto>>(tags);
+            var tagTdos = await _tagsService.GetAllAsync();
             return Ok(tagTdos);
         }
     }
