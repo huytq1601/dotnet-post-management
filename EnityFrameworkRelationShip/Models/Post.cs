@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EnityFrameworkRelationShip.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace EnityFrameworkRelationShip.Models
 {
-    public class Post
+    public class Post: IBaseEntity
     {
         [Key]
         public Guid Id { get; set; }
@@ -17,7 +18,11 @@ namespace EnityFrameworkRelationShip.Models
 
         public bool IsDeleted { get; set; }
 
+        public string UserId { get; set; } = null!;
+
         // Navigation property for the many-to-many relationship
         public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
+
+        public ApplicationUser User { get; set; } = null!;
     }
 }

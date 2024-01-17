@@ -1,5 +1,5 @@
 ﻿using EnityFrameworkRelationShip.Data;
-using EnityFrameworkRelationShip.Interfaces;
+using EnityFrameworkRelationShip.Interfaces.Repository;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +19,6 @@ namespace EnityFrameworkRelationShip.Repositories
             return await _context.Tags
                 .Where(t => !t.IsDeleted)
                 .ToListAsync();
-
         }
     }
 }

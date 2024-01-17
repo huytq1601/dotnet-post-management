@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EnityFrameworkRelationShip.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace EnityFrameworkRelationShip.Models
 {
-    public class Tag
+    public class Tag : IBaseEntity
     {
         [Key]
         public Guid Id { get; set; }

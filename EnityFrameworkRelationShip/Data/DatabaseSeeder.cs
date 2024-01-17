@@ -6,10 +6,20 @@ namespace EnityFrameworkRelationShip.Data
 {
     public class DatabaseSeeder
     {
-        public static async Task SeedDatabaseAsync(DataContext context)
+        public static async Task SeedDatabaseAsync(DataContext context, UserManager<ApplicationUser> userManager)
         {
             if (!context.PostTags.Any())
             {
+                var user = new ApplicationUser
+                {
+                    FirstName = "Huy",
+                    LastName = "Ta",
+                    Email = "huy.ta@example.com",
+                    UserName = "huy.ta"
+                };
+
+                await userManager.CreateAsync(user, "Password@123");
+                await userManager.AddToRoleAsync(user, "User");
                 var postTags = new List<PostTag>()
                 {
                     new PostTag
@@ -18,7 +28,8 @@ namespace EnityFrameworkRelationShip.Data
                         {
                             Title = "First Post",
                             Content = "Hello World!",
-                            DatePublished = DateTime.Now
+                            DatePublished = DateTime.Now,
+                            User = user
                         },
                         Tag = new Tag {Name = "Science"}
                     },
@@ -26,9 +37,10 @@ namespace EnityFrameworkRelationShip.Data
                      {
                         Post = new Post
                         {
-                            Title = "EF Core", 
-                            Content = "Seeding data with EF Core.", 
-                            DatePublished = DateTime.Now
+                            Title = "EF Core",
+                            Content = "Seeding data with EF Core.",
+                            DatePublished = DateTime.Now,
+                            User = user
                         },
                         Tag = new Tag {Name = "Tech"}
                      }
