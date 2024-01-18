@@ -2,6 +2,7 @@
 using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -51,6 +52,7 @@ namespace EnityFrameworkRelationShip.Services
         public async Task<AuthResponseDto?> Login(LoginDto loginDto)
         {
             _user = await _userManager.FindByNameAsync(loginDto.Username);
+
             if(_user == null)
             {
                 return null;
@@ -77,7 +79,7 @@ namespace EnityFrameworkRelationShip.Services
         {
             await _userManager.RemoveAuthenticationTokenAsync(_user, _loginProvider, _refreshToken);
             var newRefreshToken = await _userManager.GenerateUserTokenAsync(_user, _loginProvider, _refreshToken);
-            var result = await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
+            await _userManager.SetAuthenticationTokenAsync(_user, _loginProvider, _refreshToken, newRefreshToken);
 
             return newRefreshToken;
         }
@@ -133,9 +135,9 @@ namespace EnityFrameworkRelationShip.Services
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, _user.UserName),
+                new Claim(JwtRegisteredClaimNames.Sub, _user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, _user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, _user.Email!),
                 new Claim("uid", _user.Id),
             }.Union(userClaims).Union(roleClaims);
 
@@ -143,7 +145,7 @@ namespace EnityFrameworkRelationShip.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["Jwt:DurationInMinutes"])),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: credentials
             );
             return new JwtSecurityTokenHandler().WriteToken(token);

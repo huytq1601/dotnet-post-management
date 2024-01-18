@@ -6,6 +6,7 @@ using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Security.Claims;
@@ -26,18 +27,7 @@ namespace EnityFrameworkRelationShip.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetPosts([FromQuery(Name = "tag")] string? tag = null)
         {
-            IEnumerable<PostWithTagsDto> postWithTagsDtos;
-            if (!string.IsNullOrWhiteSpace(tag))
-            {
-                // Fetch posts by tag if the tag parameter is provided
-                postWithTagsDtos = await _postsService.GetAllPostsAsync(tag);
-            }
-            else
-            {
-                // Fetch all posts if no tag parameter is provided
-                postWithTagsDtos = await _postsService.GetAllPostsAsync();
-            }
-            
+            var postWithTagsDtos = await (tag != null ? _postsService.GetAllPostsAsync(tag) : _postsService.GetAllPostsAsync());
             return Ok(postWithTagsDtos);
         }
 

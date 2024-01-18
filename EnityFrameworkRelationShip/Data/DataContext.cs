@@ -17,6 +17,12 @@ namespace EnityFrameworkRelationShip.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Post>().HasQueryFilter(p => !p.IsDeleted);
+            modelBuilder.Entity<Tag>().HasQueryFilter(t => !t.IsDeleted);
+            modelBuilder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
+            modelBuilder.Entity<Post>().Navigation(p => p.PostTags).AutoInclude();
+            modelBuilder.Entity<PostTag>().Navigation(p => p.Tag).AutoInclude();
+
             // Configure the many-to-many join entity
             modelBuilder.Entity<PostTag>()
                 .HasKey(pt => new { pt.PostId, pt.TagId });

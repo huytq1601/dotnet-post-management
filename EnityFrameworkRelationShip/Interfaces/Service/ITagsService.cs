@@ -5,6 +5,6 @@ namespace EnityFrameworkRelationShip.Interfaces.Service
 {
     public interface ITagsService
     {
-        Task<IEnumerable<TagDto>> GetAllAsync();
+        Task<IEnumerable<TagDto>> GetAllTagsAsync();
     }
 }

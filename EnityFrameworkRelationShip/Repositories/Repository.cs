@@ -5,10 +5,11 @@ using EnityFrameworkRelationShip.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Linq.Expressions;
 
 namespace EnityFrameworkRelationShip.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class, IBaseEntity
+    public class Repository<T> : IRepository<T> where T : class
     {
         private readonly DataContext _context;
         private DbSet<T> _table;
@@ -19,36 +20,44 @@ namespace EnityFrameworkRelationShip.Repositories
             _table = context.Set<T>();
         }
 
-        public IQueryable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return _table;
+            return await _table.ToListAsync();
         }
 
-        public T? GetById(Guid id)
+        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate)
         {
-            return _table.SingleOrDefault(e => !e.IsDeleted && e.Id == id);
+            return await _table.Where(predicate).ToListAsync();
         }
 
-        public void Create(T entity)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
-           _table.Add(entity);
+            return await _table.FindAsync(id);
         }
 
-        public void Update(T entity)
+        public async Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _table.Where(predicate).FirstOrDefaultAsync();
+        }
+
+        public async Task CreateAsync(T entity)
+        {
+           await _table.AddAsync(entity);
+           await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(T entity)
         {
             _table.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(T entity)
+        public async Task DeleteAsync(T entity)
         {
-            entity.IsDeleted = true;
-            _table.Update(entity);
-        }
-
-        public void  SaveChanges()
-        {
-            _context.SaveChanges();
+            _table.Attach(entity);
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
     }
 }

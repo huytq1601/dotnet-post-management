@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EnityFrameworkRelationShip.Models
 {
-    public class Tag : IBaseEntity
+    public class Tag
     {
         [Key]
         public Guid Id { get; set; }

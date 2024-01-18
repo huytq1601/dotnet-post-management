@@ -25,7 +25,7 @@ namespace EnityFrameworkRelationShip.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TagDto>>> GetTags()
         {
-            var tagTdos = await _tagsService.GetAllAsync();
+            var tagTdos = await _tagsService.GetAllTagsAsync();
             return Ok(tagTdos);
         }
     }

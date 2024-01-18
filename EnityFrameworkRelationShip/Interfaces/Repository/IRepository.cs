@@ -1,11 +1,15 @@
-﻿namespace EnityFrameworkRelationShip.Interfaces.Repository;
+﻿using System.Linq.Expressions;
 
-public interface IRepository<T> where T : class, IBaseEntity
+namespace EnityFrameworkRelationShip.Interfaces.Repository;
+
+public interface IRepository<T> where T : class
 {
-    IQueryable<T> GetAll();
-    T? GetById(Guid id);
-    void Create(T entity);
-    void Update(T entity);
-    void Delete(T entity);
-    void SaveChanges();
+    Task<IEnumerable<T>> GetAllAsync();
+    Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate);
+    Task<T?> GetByIdAsync(Guid id);
+
+    Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate);
+    Task CreateAsync(T entity);
+    Task UpdateAsync(T entity);
+    Task DeleteAsync(T entity);
 }

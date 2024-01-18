@@ -18,9 +18,9 @@ namespace EnityFrameworkRelationShip.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<TagDto>> GetAllAsync()
+        public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
         {
-            var tags = await  _tagRepository.GetAll().ToListAsync();
+            var tags = await _tagRepository.GetAllAsync();
             var tagDtos = _mapper.Map<List<TagDto>>(tags);
             return tagDtos;
         }

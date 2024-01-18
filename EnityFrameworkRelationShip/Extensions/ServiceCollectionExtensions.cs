@@ -11,8 +11,6 @@ namespace EnityFrameworkRelationShip.Extensions
         public static IServiceCollection AddRepositoryServices(this IServiceCollection services)
         {
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IPostsRepository, PostsRepository>();
-            services.AddScoped<ITagsRepository, TagsRepository>();
             return services;
         }
 
@@ -21,6 +19,9 @@ namespace EnityFrameworkRelationShip.Extensions
             services.AddScoped<IPostsService, PostsService>();
             services.AddScoped<ITagsService, TagsService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUsersService, UsersService>();
+            services.AddSingleton<ICacheService, CacheService>();
+            services.AddMemoryCache();
             return services;
         }
     }

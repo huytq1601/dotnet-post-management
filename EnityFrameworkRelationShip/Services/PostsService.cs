@@ -5,6 +5,8 @@ using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Interfaces.Repository;
 using EnityFrameworkRelationShip.Interfaces.Service;
 using EnityFrameworkRelationShip.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 
 namespace EnityFrameworkRelationShip.Services
 {
@@ -13,48 +15,40 @@ namespace EnityFrameworkRelationShip.Services
         private readonly IMapper _mapper;
         private readonly IRepository<Post> _postsRepository;
         private readonly IRepository<Tag> _tagsRepository;
+        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cacheService;
+        private readonly string _cachePrefix = "postsCacheKey";
 
-        public PostsService(IMapper mapper, IRepository<Post> postsRepository, IRepository<Tag> tagsRepository)
+        public PostsService(IMapper mapper, IRepository<Post> postsRepository, IRepository<Tag> tagsRepository, IMemoryCache cache, ICacheService cacheService)
         {
             _mapper = mapper;
+            _cache = cache;
+            _cacheService = cacheService;
             _postsRepository = postsRepository;
             _tagsRepository = tagsRepository;
         }
 
         public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync()
         {
-            var posts = await _postsRepository.GetAll()
-                .Where(p => !p.IsDeleted)
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .ToListAsync();
-
-            foreach (var post in posts)
-            {
-                post.PostTags = post.PostTags.Where(pt => !pt.Tag.IsDeleted).ToList();
-            }
+            var cacheKey = GetCacheKey();
+            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
+            var posts = await _postsRepository.GetAllAsync();
 
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
 
         public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync(string tag)
         {
-            var posts = await _postsRepository.GetAll()
-                .Where(p => !p.IsDeleted && p.PostTags.Any(pt => !pt.Tag.IsDeleted && pt.Tag.Name.Contains(tag)))
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .ToListAsync(); ;
+            var cacheKey = GetCacheKey(tag);
+            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag))));
+            var posts = await _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag)));
 
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
 
         public async Task<PostWithTagsDto?> GetPostByIdAsync(Guid id)
         {
-            var post = await _postsRepository.GetAll()
-                .Where(p => !p.IsDeleted && p.Id == id)
-                .Include(p => p.PostTags)
-                .ThenInclude(pt => pt.Tag)
-                .FirstOrDefaultAsync();
+            var post = await _postsRepository.GetByIdAsync(id);
 
             return _mapper.Map<PostWithTagsDto>(post);
         }
@@ -78,8 +72,7 @@ namespace EnityFrameworkRelationShip.Services
 
             await HandleTagsAsync(post, tagNames);
 
-            _postsRepository.Create(post);
-            _postsRepository.SaveChanges();
+            await _postsRepository.CreateAsync(post);
 
             return _mapper.Map<PostWithTagsDto>(post);
         }
@@ -87,13 +80,11 @@ namespace EnityFrameworkRelationShip.Services
         public async Task<bool> UpdatePostAsync(UpdatePostDto updatePostDto)
         {
             if (updatePostDto == null)
+            {
                 throw new ArgumentNullException(nameof(updatePostDto));
+            }   
 
-            var post = await _postsRepository.GetAll()
-                            .Where(p => !p.IsDeleted)
-                            .Include(p => p.PostTags)
-                            .ThenInclude(pt => pt.Tag)
-                            .FirstOrDefaultAsync(p => p.Id == updatePostDto.Id);
+            var post = await _postsRepository.GetByIdAsync(updatePostDto.Id);
 
             if (post == null)
             {
@@ -107,22 +98,24 @@ namespace EnityFrameworkRelationShip.Services
 
             await HandleTagsAsync(post, updatedTagNames);
 
-            _postsRepository.Update(post);
-            _postsRepository.SaveChanges();
+            await _postsRepository.UpdateAsync(post);
 
             return true;
         }
 
         public async Task<bool> DeletePostAsync(Guid id)
         {
-            var post = _postsRepository.GetById(id);
+            var post = await _postsRepository.GetByIdAsync(id);
             if (post == null)
             {
                 // If the post does not exist, we return false indiciating we didn't delete anything.
                 return false;
             }
-            _postsRepository.Delete(post);
-            _postsRepository.SaveChanges();
+
+            post.IsDeleted = true;
+            await _postsRepository.UpdateAsync(post);
+
+            _cacheService.RemoveByPrefix(_cachePrefix);
 
             return true;
         }
@@ -148,7 +141,7 @@ namespace EnityFrameworkRelationShip.Services
                     if (postTag.Tag.IsDeleted)
                     {
                         postTag.Tag.IsDeleted = false;
-                        _tagsRepository.Update(postTag.Tag);
+                        await _tagsRepository.UpdateAsync(postTag.Tag);
                     }
                     tagNames.Remove(postTag.Tag.Name); // Remove so we don't attempt to add it again
                 }
@@ -157,23 +150,42 @@ namespace EnityFrameworkRelationShip.Services
             // For each remaining tag name, add it if it doesn't exist already
             foreach (var tagName in tagNames)
             {
-                var tag = await _tagsRepository.GetAll().FirstOrDefaultAsync(t => t.Name == tagName)
+                var tag = await _tagsRepository.FindOneAsync(t => t.Name == tagName)
                          ?? new Tag { Name = tagName };
 
                 // Add to context if it's a new tag
                 if (tag.Id == Guid.Empty)
                 {
-                    _tagsRepository.Create(tag);
+                    await _tagsRepository.CreateAsync(tag);
                 }
 
                 if (tag.IsDeleted)
                 {
                     tag.IsDeleted = false;
-                    _tagsRepository.Update(tag);
+                    await _tagsRepository.UpdateAsync(tag);
                 }
 
                 post.PostTags.Add(new PostTag { Tag = tag });
             }
         }
+
+        private string GetCacheKey(string? tag = null)
+        {
+            return string.IsNullOrEmpty(tag) ? _cachePrefix : $"{_cachePrefix}-{tag}";
+        }
+
+        //private async Task<IEnumerable<Post>> GetOrSetCacheAsync(string cacheKey, Func<Task<IEnumerable<Post>>> fetchPosts)
+        //{
+        //    if (_cache.TryGetValue(cacheKey, out IEnumerable<Post> cachedPosts))
+        //    {
+        //        return cachedPosts ?? new List<Post>();
+        //    }
+
+        //    var posts = await fetchPosts();
+
+        //    _cacheService.SetWithKeyTracking(cacheKey, posts);
+
+        //    return posts;
+        //}
     }
 }
