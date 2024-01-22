@@ -1,6 +1,5 @@
 ﻿using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Interfaces.Repository;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;

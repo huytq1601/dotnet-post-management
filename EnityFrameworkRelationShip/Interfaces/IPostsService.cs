@@ -1,7 +1,7 @@
 ﻿using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Models;
 
-namespace EnityFrameworkRelationShip.Interfaces.Service
+namespace EnityFrameworkRelationShip.Interfaces
 {
     public interface IPostsService
     {

@@ -1,4 +1,4 @@
-﻿using EnityFrameworkRelationShip.Interfaces.Service;
+﻿using EnityFrameworkRelationShip.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using static System.Runtime.InteropServices.JavaScript.JSType;

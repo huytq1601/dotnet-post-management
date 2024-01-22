@@ -1,17 +1,13 @@
 using AutoMapper;
 using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Extensions;
-using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Mappings;
 using EnityFrameworkRelationShip.Models;
-using EnityFrameworkRelationShip.Repositories;
-using EnityFrameworkRelationShip.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +31,8 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddRepositoryServices();
 builder.Services.AddBusinessServices();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,6 +52,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowOrigin", builder =>
+    {
+        builder.WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 //builder.Services.AddControllers().AddJsonOptions(x =>
 //{
 //    // Handle loops correctly
@@ -69,6 +77,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowOrigin");
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -76,7 +86,6 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var myDbContext = services.GetRequiredService<DataContext>();
 
-    // Run the seeding method
     await DatabaseSeeder.SeedRolesAsync(roleManager);
     await DatabaseSeeder.SeedDatabaseAsync(myDbContext, userManager);
 }

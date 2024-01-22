@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace EnityFrameworkRelationShip.Interfaces.Repository;
+namespace EnityFrameworkRelationShip.Interfaces;
 
 public interface IRepository<T> where T : class
 {

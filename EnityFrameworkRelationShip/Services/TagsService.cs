@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Dtos.Tag;
-using EnityFrameworkRelationShip.Interfaces.Repository;
-using EnityFrameworkRelationShip.Interfaces.Service;
+using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnityFrameworkRelationShip.Services
 {
@@ -20,9 +18,14 @@ namespace EnityFrameworkRelationShip.Services
 
         public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
         {
-            var tags = await _tagRepository.GetAllAsync();
-            var tagDtos = _mapper.Map<List<TagDto>>(tags);
-            return tagDtos;
+            var tags = await _tagRepository.SearchAsync(t => !t.IsDeleted);
+            return _mapper.Map<List<TagDto>>(tags);
+        }
+
+        public async Task<TagDto> GetTagByIdAsync(Guid id)
+        {
+            var tag = await _tagRepository.FindOneAsync(t => !t.IsDeleted && t.Id == id);
+            return _mapper.Map<TagDto>(tag);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Dtos.User;
-using EnityFrameworkRelationShip.Interfaces.Service;
+using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,4 @@
 ﻿using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Interfaces.Repository;
-using EnityFrameworkRelationShip.Interfaces.Service;
 using EnityFrameworkRelationShip.Repositories;
 using EnityFrameworkRelationShip.Services;
 
@@ -21,7 +19,6 @@ namespace EnityFrameworkRelationShip.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUsersService, UsersService>();
             services.AddSingleton<ICacheService, CacheService>();
-            services.AddMemoryCache();
             return services;
         }
     }

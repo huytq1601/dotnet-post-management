@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace EnityFrameworkRelationShip.Interfaces.Service
+namespace EnityFrameworkRelationShip.Interfaces
 {
     public interface ICacheService
     {

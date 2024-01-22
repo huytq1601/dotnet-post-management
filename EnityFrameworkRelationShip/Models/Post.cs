@@ -9,20 +9,19 @@ namespace EnityFrameworkRelationShip.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string Title { get; set; } = String.Empty;
+        public string Title { get; set; } = string.Empty;
 
         [Required]
-        public string Content { get; set; } = String.Empty;
+        public string Content { get; set; } = string.Empty;
 
+        [Required]
         public DateTime DatePublished { get; set; }
 
         public bool IsDeleted { get; set; }
 
-        public string UserId { get; set; } = null!;
-
-        // Navigation property for the many-to-many relationship
         public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
 
+        public string UserId { get; set; } = null!;
         public ApplicationUser User { get; set; } = null!;
     }
 }

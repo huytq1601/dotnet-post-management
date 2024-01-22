@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Interfaces.Service;
+using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +25,7 @@ namespace EnityFrameworkRelationShip.Controllers
 
         // GET: api/Posts
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetPosts([FromQuery(Name = "tag")] string? tag = null)
         {
             var postWithTagsDtos = await (tag != null ? _postsService.GetAllPostsAsync(tag) : _postsService.GetAllPostsAsync());
@@ -36,12 +37,8 @@ namespace EnityFrameworkRelationShip.Controllers
         public async Task<ActionResult<PostWithTagsDto>> GetPost(Guid id)
         {
             var postWithTags = await _postsService.GetPostByIdAsync(id);
-            if (postWithTags == null)
-            {
-                return NotFound();
-            }
 
-            return Ok(postWithTags);
+            return postWithTags == null ? NotFound() : Ok(postWithTags);
         }
 
         [HttpPost]
@@ -55,8 +52,8 @@ namespace EnityFrameworkRelationShip.Controllers
 
             try
             {
-                string userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value ?? string.Empty;
-                if(userId.Length == 0)
+                string? userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+                if(userId == null)
                 {
                     return Unauthorized();
                 }

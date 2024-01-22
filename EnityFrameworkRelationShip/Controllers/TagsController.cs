@@ -1,12 +1,7 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Dtos.Tag;
 using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Interfaces.Repository;
-using EnityFrameworkRelationShip.Interfaces.Service;
-using EnityFrameworkRelationShip.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace EnityFrameworkRelationShip.Controllers
 {
@@ -27,6 +22,17 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             var tagTdos = await _tagsService.GetAllTagsAsync();
             return Ok(tagTdos);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TagDto>> GetTagById(Guid id)
+        {
+            var tagDto = await _tagsService.GetTagByIdAsync(id);
+
+            if (tagDto == null)
+                return NotFound();
+
+            return Ok(tagDto);
         }
     }
 }

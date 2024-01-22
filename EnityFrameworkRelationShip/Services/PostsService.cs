@@ -1,12 +1,8 @@
 ﻿using AutoMapper;
 using EnityFrameworkRelationShip.Dtos.Post;
-using Microsoft.EntityFrameworkCore;
 using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Interfaces.Repository;
-using EnityFrameworkRelationShip.Interfaces.Service;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Hosting;
 
 namespace EnityFrameworkRelationShip.Services
 {
@@ -31,8 +27,8 @@ namespace EnityFrameworkRelationShip.Services
         public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync()
         {
             var cacheKey = GetCacheKey();
-            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
-            var posts = await _postsRepository.GetAllAsync();
+            var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
+            //var posts = await _postsRepository.GetAllAsync();
 
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
@@ -40,8 +36,8 @@ namespace EnityFrameworkRelationShip.Services
         public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync(string tag)
         {
             var cacheKey = GetCacheKey(tag);
-            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag))));
-            var posts = await _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag)));
+            var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag))));
+            //var posts = await _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag)));
 
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
@@ -143,7 +139,7 @@ namespace EnityFrameworkRelationShip.Services
                         postTag.Tag.IsDeleted = false;
                         await _tagsRepository.UpdateAsync(postTag.Tag);
                     }
-                    tagNames.Remove(postTag.Tag.Name); // Remove so we don't attempt to add it again
+                    tagNames.Remove(postTag.Tag.Name);
                 }
             }
 
@@ -174,18 +170,18 @@ namespace EnityFrameworkRelationShip.Services
             return string.IsNullOrEmpty(tag) ? _cachePrefix : $"{_cachePrefix}-{tag}";
         }
 
-        //private async Task<IEnumerable<Post>> GetOrSetCacheAsync(string cacheKey, Func<Task<IEnumerable<Post>>> fetchPosts)
-        //{
-        //    if (_cache.TryGetValue(cacheKey, out IEnumerable<Post> cachedPosts))
-        //    {
-        //        return cachedPosts ?? new List<Post>();
-        //    }
+        private async Task<IEnumerable<Post>> GetOrSetCacheAsync(string cacheKey, Func<Task<IEnumerable<Post>>> getPosts)
+        {
+            if (_cache.TryGetValue(cacheKey, out IEnumerable<Post> cachedPosts))
+            {
+                return cachedPosts ?? new List<Post>();
+            }
 
-        //    var posts = await fetchPosts();
+            var posts = await getPosts();
 
-        //    _cacheService.SetWithKeyTracking(cacheKey, posts);
+            _cacheService.SetWithKeyTracking(cacheKey, posts);
 
-        //    return posts;
-        //}
+            return posts;
+        }
     }
 }

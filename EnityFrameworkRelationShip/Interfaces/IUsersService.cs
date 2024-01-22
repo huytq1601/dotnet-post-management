@@ -1,7 +1,7 @@
 ﻿using EnityFrameworkRelationShip.Dtos.User;
 using EnityFrameworkRelationShip.Models;
 
-namespace EnityFrameworkRelationShip.Interfaces.Service
+namespace EnityFrameworkRelationShip.Interfaces
 {
     public interface IUsersService
     {
