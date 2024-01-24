@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Dtos.User;
 using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
@@ -12,12 +13,14 @@ namespace EnityFrameworkRelationShip.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
+        private readonly IRepository<Post> _postRepository;
 
-        public UsersService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
+        public UsersService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IRepository<Post> postRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
+            _postRepository = postRepository;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -31,6 +34,25 @@ namespace EnityFrameworkRelationShip.Services
             }
 
             return userDtos;
+        }
+
+        public async Task<UserDto?> GetUserByIdAsync(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if(user == null)
+            {
+                return null;
+            }
+
+            var userDto = _mapper.Map<UserDto>(user);
+            userDto.Roles = await _userManager.GetRolesAsync(user);
+            return userDto;
+        }
+
+        public async Task<IEnumerable<PostWithTagsDto>> GetPostsByUser(string userId)
+        {
+            var posts = await _postRepository.SearchAsync(p => p.UserId == userId);
+            return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
 
         public async Task<AssignResultDto> AssignRoleAsync(AssignRoleDto assignRoleDto)

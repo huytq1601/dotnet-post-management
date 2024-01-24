@@ -3,10 +3,11 @@ using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 
 namespace EnityFrameworkRelationShip.Services
 {
-    public class PostsService: IPostsService
+    public class PostsService : IPostsService
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Post> _postsRepository;
@@ -39,6 +40,18 @@ namespace EnityFrameworkRelationShip.Services
             var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag))));
             //var posts = await _postsRepository.SearchAsync(p => p.PostTags.Any(pt => pt.Tag.Name.Contains(tag)));
 
+            return _mapper.Map<List<PostWithTagsDto>>(posts);
+        }
+
+        public async Task<IEnumerable<PostWithTagsDto>> GetPostsOfOtherAsync(string userId)
+        {
+            var posts = await _postsRepository.SearchAsync(p => p.UserId != userId);
+            return _mapper.Map<List<PostWithTagsDto>>(posts);
+        }
+
+        public async Task<IEnumerable<PostWithTagsDto>> GetPostsByUser(string userId)
+        {
+            var posts = await _postsRepository.SearchAsync(p => p.UserId == userId);
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
 
@@ -143,13 +156,11 @@ namespace EnityFrameworkRelationShip.Services
                 }
             }
 
-            // For each remaining tag name, add it if it doesn't exist already
             foreach (var tagName in tagNames)
             {
                 var tag = await _tagsRepository.FindOneAsync(t => t.Name == tagName)
                          ?? new Tag { Name = tagName };
 
-                // Add to context if it's a new tag
                 if (tag.Id == Guid.Empty)
                 {
                     await _tagsRepository.CreateAsync(tag);

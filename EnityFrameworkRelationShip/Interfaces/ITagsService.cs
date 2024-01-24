@@ -1,5 +1,4 @@
 ﻿using EnityFrameworkRelationShip.Dtos.Tag;
-using EnityFrameworkRelationShip.Models;
 
 namespace EnityFrameworkRelationShip.Interfaces
 {
