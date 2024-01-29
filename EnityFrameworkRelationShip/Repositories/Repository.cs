@@ -1,9 +1,6 @@
 ﻿using EnityFrameworkRelationShip.Data;
 using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using System;
 using System.Linq.Expressions;
 
 namespace EnityFrameworkRelationShip.Repositories
@@ -11,7 +8,7 @@ namespace EnityFrameworkRelationShip.Repositories
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly DataContext _context;
-        private DbSet<T> _table;
+        private readonly DbSet<T> _table;
 
         public Repository(DataContext context)
         {
@@ -21,12 +18,12 @@ namespace EnityFrameworkRelationShip.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _table.ToListAsync();
+            return await _table.AsNoTracking().ToListAsync();
         }
 
         public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _table.Where(predicate).ToListAsync();
+            return await _table.AsNoTracking().Where(predicate).ToListAsync();
         }
 
         public async Task<T?> GetByIdAsync(Guid id)
@@ -36,7 +33,7 @@ namespace EnityFrameworkRelationShip.Repositories
 
         public async Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _table.Where(predicate).FirstOrDefaultAsync();
+            return await _table.AsNoTracking().Where(predicate).FirstOrDefaultAsync();
         }
 
         public async Task CreateAsync(T entity)
@@ -47,14 +44,12 @@ namespace EnityFrameworkRelationShip.Repositories
 
         public async Task UpdateAsync(T entity)
         {
-            _table.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(T entity)
         {
-            _table.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }

@@ -18,7 +18,7 @@ namespace EnityFrameworkRelationShip.Models
 
         public bool IsDeleted { get; set; }
 
-        public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
         public string UserId { get; set; } = null!;
         public ApplicationUser User { get; set; } = null!;

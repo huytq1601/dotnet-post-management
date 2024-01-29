@@ -11,6 +11,6 @@ namespace EnityFrameworkRelationShip.Dtos.Post
         [Required]
         public string Content { get; set; } = string.Empty;
 
-        public List<string> TagNames { get; set; } = new List<string>();
+        public List<string> Tags { get; set; } = new List<string>();
     }
 }

@@ -8,7 +8,7 @@ namespace EnityFrameworkRelationShip.Data
     {
         public static async Task SeedDatabaseAsync(DataContext context, UserManager<ApplicationUser> userManager)
         {
-            if (!context.PostTags.Any())
+            if (!context.Posts.Any())
             {
                 var user = new ApplicationUser
                 {
@@ -20,38 +20,40 @@ namespace EnityFrameworkRelationShip.Data
 
                 await userManager.CreateAsync(user, "Password@123");
                 await userManager.AddToRoleAsync(user, "User");
-                var postTags = new List<PostTag>()
+
+                var posts = new List<Post>()
                 {
-                    new PostTag
+                    new Post
                     {
-                        Post = new Post
+
+                        Title = "First Post",
+                        Content = "Hello World!",
+                        DatePublished = DateTime.Now,
+                        User = user,
+                        Tags = new List<Tag>()
                         {
-                            Title = "First Post",
-                            Content = "Hello World!",
-                            DatePublished = DateTime.Now,
-                            User = user
-                        },
-                        Tag = new Tag {Name = "Science"}
+                            new Tag {Name = "Science"}
+                        }
                     },
-                     new PostTag
+                     new Post
                      {
-                        Post = new Post
+                        Title = "EF Core",
+                        Content = "Seeding data with EF Core.",
+                        DatePublished = DateTime.Now,
+                        User = user,
+                        Tags = new List<Tag>
                         {
-                            Title = "EF Core",
-                            Content = "Seeding data with EF Core.",
-                            DatePublished = DateTime.Now,
-                            User = user
-                        },
-                        Tag = new Tag {Name = "Tech"}
+                            new Tag {Name = "Tech"}
+                        }
                      }
                 };
-                await context.PostTags.AddRangeAsync(postTags);
+                await context.Posts.AddRangeAsync(posts);
 
                 var tags = new List<Tag>
                 {
                     new Tag { Name = "Art" },
                     new Tag { Name = "Travel"},
-                    new Tag { Name = "Asia"}
+                    new Tag { Name = "Study"}
                 };
                 await context.Tags.AddRangeAsync(tags);
             }

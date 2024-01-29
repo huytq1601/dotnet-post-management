@@ -1,5 +1,4 @@
-﻿using EnityFrameworkRelationShip.Interfaces;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace EnityFrameworkRelationShip.Models
 {
@@ -11,6 +10,6 @@ namespace EnityFrameworkRelationShip.Models
         public string Name { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
 
-        public ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }
