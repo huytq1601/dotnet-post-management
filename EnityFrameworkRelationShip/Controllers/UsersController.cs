@@ -1,10 +1,10 @@
-﻿using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Dtos.User;
-using EnityFrameworkRelationShip.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PostManagement.Application.Dtos.Post;
+using PostManagement.Application.Dtos.User;
+using PostManagement.Application.Interfaces;
 
-namespace EnityFrameworkRelationShip.Controllers
+namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -28,25 +28,17 @@ namespace EnityFrameworkRelationShip.Controllers
 
         [Authorize(Roles = "Admin, User")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>>GetUser(string id)
+        public async Task<ActionResult<UserDto>> GetUser(string id)
         {
             var user = await _usersService.GetUserByIdAsync(id);
             return Ok(user);
-        }
-
-        [Authorize]
-        [HttpGet("{id}/posts")]
-        public async Task<ActionResult<PostWithTagsDto>> GetUserPosts(string id)
-        {
-            var posts = await _usersService.GetPostsByUser(id);
-            return Ok(posts);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> AssignRoles(string id, [FromBody] AssignRoleDto assignRoleDto)
         {
-            if(assignRoleDto == null || assignRoleDto.UserId != id)
+            if (assignRoleDto == null || assignRoleDto.UserId != id)
             {
                 return BadRequest("Invalid user data");
             }
@@ -72,10 +64,11 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             var success = await _usersService.DeleteUserAsync(id);
 
-            if(!success)
+            if (!success)
             {
                 return NotFound("User not found");
-            } else
+            }
+            else
             {
                 return NoContent();
             }

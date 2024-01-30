@@ -1,11 +1,12 @@
-﻿using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using PostManagement.Application.Dtos.Post;
+using PostManagement.Application.Interfaces;
+using PostManagement.Core.Common;
+using PostManagement.Core.Exceptions;
 
 
-namespace EnityFrameworkRelationShip.Controllers
+namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -21,30 +22,39 @@ namespace EnityFrameworkRelationShip.Controllers
         // GET: api/Posts
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetPosts([FromQuery(Name = "tag")] string? tag = null)
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetPosts([FromQuery] PostFilter filter)
         {
-            var postWithTagsDtos = await (tag != null ? _postsService.GetAllPostsAsync(tag) : _postsService.GetAllPostsAsync());
-            return Ok(postWithTagsDtos);
+            var response = await _postsService.GetAllPostsAsync(filter);
+            return Ok(response);
         }
 
         [HttpGet("others")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetOtherUserPosts()
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetOtherUserPosts([FromQuery] PostFilter filter)
         {
             var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
-            var postWithTagsDtos = await _postsService.GetPostsOfOtherAsync(currentUserId);
-            return Ok(postWithTagsDtos);
+            var response = await _postsService.GetPostsOfOtherAsync(currentUserId, filter);
+            return Ok(response);
+        }
+
+        [HttpGet("currentUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetCurrentrUserPosts([FromQuery] PostFilter filter)
+        {
+            var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
+            var response = await _postsService.GetPostsByUserAsync(currentUserId, filter);
+            return Ok(response);
         }
 
         // GET: api/Posts/5
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostWithTagsDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PostWithTagsDto>> GetPost(Guid id)
+        public async Task<ActionResult<Response<PostWithTagsDto>>> GetPost(Guid id)
         {
-            var postWithTags = await _postsService.GetPostByIdAsync(id);
+            var response = await _postsService.GetPostByIdAsync(id);
 
-            return postWithTags == null ? NotFound() : Ok(postWithTags);
+            return Ok(response);
         }
 
         [HttpPost]
@@ -54,7 +64,7 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             if (postDto == null)
             {
-                return BadRequest("Post cannot be null");
+                throw new BadRequestException("Invalid Post Data");
             }
 
             string userId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
@@ -71,14 +81,10 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             if (updatePostDto == null || updatePostDto.Id != id)
             {
-                return BadRequest("Invalid post data");
+                throw new BadRequestException("Invalid post data");
             }
 
-            bool updateResult = await _postsService.UpdatePostAsync(updatePostDto);
-            if (!updateResult)
-            {
-                return NotFound($"Post with ID: {id} not found.");
-            }
+            await _postsService.UpdatePostAsync(updatePostDto);
 
             return NoContent();
         }
@@ -88,12 +94,7 @@ namespace EnityFrameworkRelationShip.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeletePost(Guid id)
         {
-            bool deleteResult = await _postsService.DeletePostAsync(id);
-            if (!deleteResult)
-            {
-                return NotFound($"Post with ID: {id} not found.");
-            }
-
+            await _postsService.DeletePostAsync(id);
             return NoContent();
         }
     }

@@ -1,12 +1,8 @@
-﻿using EnityFrameworkRelationShip.Dtos.User;
-using EnityFrameworkRelationShip.Interfaces;
-using EnityFrameworkRelationShip.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using PostManagement.Application.Dtos.Auth;
+using PostManagement.Application.Interfaces;
 
-namespace EnityFrameworkRelationShip.Controllers
+namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -50,8 +46,8 @@ namespace EnityFrameworkRelationShip.Controllers
         public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
         {
             var authResponse = await _authService.Login(loginDto);
-            
-            if(authResponse == null)
+
+            if (authResponse == null)
             {
                 return Unauthorized();
             }
