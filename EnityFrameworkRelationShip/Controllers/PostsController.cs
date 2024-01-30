@@ -1,12 +1,12 @@
-﻿using EnityFrameworkRelationShip.Common;
-using EnityFrameworkRelationShip.Dtos.Post;
-using EnityFrameworkRelationShip.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using PostManagement.Application.Dtos.Post;
+using PostManagement.Application.Interfaces;
+using PostManagement.Core.Common;
+using PostManagement.Core.Exceptions;
 
 
-namespace EnityFrameworkRelationShip.Controllers
+namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -50,11 +50,11 @@ namespace EnityFrameworkRelationShip.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostWithTagsDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PostWithTagsDto>> GetPost(Guid id)
+        public async Task<ActionResult<Response<PostWithTagsDto>>> GetPost(Guid id)
         {
-            var postWithTags = await _postsService.GetPostByIdAsync(id);
+            var response = await _postsService.GetPostByIdAsync(id);
 
-            return postWithTags == null ? NotFound() : Ok(postWithTags);
+            return Ok(response);
         }
 
         [HttpPost]
@@ -64,7 +64,7 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             if (postDto == null)
             {
-                return BadRequest("Post cannot be null");
+                throw new BadRequestException("Invalid Post Data");
             }
 
             string userId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
@@ -81,14 +81,10 @@ namespace EnityFrameworkRelationShip.Controllers
         {
             if (updatePostDto == null || updatePostDto.Id != id)
             {
-                return BadRequest("Invalid post data");
+                throw new BadRequestException("Invalid post data");
             }
 
-            bool updateResult = await _postsService.UpdatePostAsync(updatePostDto);
-            if (!updateResult)
-            {
-                return NotFound($"Post with ID: {id} not found.");
-            }
+            await _postsService.UpdatePostAsync(updatePostDto);
 
             return NoContent();
         }
@@ -98,12 +94,7 @@ namespace EnityFrameworkRelationShip.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeletePost(Guid id)
         {
-            bool deleteResult = await _postsService.DeletePostAsync(id);
-            if (!deleteResult)
-            {
-                return NotFound($"Post with ID: {id} not found.");
-            }
-
+            await _postsService.DeletePostAsync(id);
             return NoContent();
         }
     }

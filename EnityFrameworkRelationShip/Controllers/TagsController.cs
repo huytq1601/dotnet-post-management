@@ -1,9 +1,8 @@
-﻿using AutoMapper;
-using EnityFrameworkRelationShip.Dtos.Tag;
-using EnityFrameworkRelationShip.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using PostManagement.Application.Dtos.Tag;
+using PostManagement.Application.Interfaces;
 
-namespace EnityFrameworkRelationShip.Controllers
+namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
