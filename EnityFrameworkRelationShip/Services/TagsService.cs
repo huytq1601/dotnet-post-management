@@ -18,7 +18,7 @@ namespace EnityFrameworkRelationShip.Services
 
         public async Task<IEnumerable<TagDto>> GetAllTagsAsync()
         {
-            var tags = await _tagRepository.SearchAsync(t => !t.IsDeleted);
+            var tags = await _tagRepository.FindManyAsync(t => !t.IsDeleted);
             return _mapper.Map<List<TagDto>>(tags);
         }
 

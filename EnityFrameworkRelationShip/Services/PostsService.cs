@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using EnityFrameworkRelationShip.Common;
 using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Interfaces;
 using EnityFrameworkRelationShip.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace EnityFrameworkRelationShip.Services
@@ -24,32 +26,80 @@ namespace EnityFrameworkRelationShip.Services
             _tagsRepository = tagsRepository;
         }
 
-        public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync()
+        public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetAllPostsAsync(PostFilter filter)
         {
-            var cacheKey = GetCacheKey();
-            var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
+            //var cacheKey = GetCacheKey();
+            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
 
-            return _mapper.Map<List<PostWithTagsDto>>(posts);
+            //return _mapper.Map<List<PostWithTagsDto>>(posts);
+
+            var query = _postsRepository.GetQuery()
+                .Where(post => post.Tags.Any(t => t.Name.Contains(filter.Tag ?? "")));
+
+            var count = await query.CountAsync();
+
+            var posts = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var data = _mapper.Map<IEnumerable<PostWithTagsDto>>(posts);
+
+            var totalPages = Convert.ToInt32(Math.Ceiling((decimal)count / filter.PageSize));
+
+            var response = new PageResponse<IEnumerable<PostWithTagsDto>>(data, filter.PageNumber, filter.PageSize)
+            {
+                TotalItems = count,
+                TotalPages = totalPages
+            };
+
+            return response;
         }
 
-        public async Task<IEnumerable<PostWithTagsDto>> GetAllPostsAsync(string tagName)
+        public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetPostsOfOtherAsync(string userId, PostFilter filter)
         {
-            var cacheKey = GetCacheKey(tagName);
-            var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.SearchAsync(p => p.Tags.Any(tag => tag.Name.Contains(tagName))));
+            var query = _postsRepository.GetQuery().Where(p => p.UserId != userId);
+            var count = await query.CountAsync();
 
-            return _mapper.Map<List<PostWithTagsDto>>(posts);
+            var posts = await query
+               .Skip((filter.PageNumber - 1) * filter.PageSize)
+               .Take(filter.PageSize)
+               .ToListAsync();
+
+            var data = _mapper.Map<IEnumerable<PostWithTagsDto>>(posts);
+
+            var totalPages = Convert.ToInt32(Math.Ceiling((decimal)count / filter.PageSize));
+
+            var response = new PageResponse<IEnumerable<PostWithTagsDto>>(data, filter.PageNumber, filter.PageSize)
+            {
+                TotalItems = count,
+                TotalPages = totalPages
+            };
+
+            return response;
         }
 
-        public async Task<IEnumerable<PostWithTagsDto>> GetPostsOfOtherAsync(string userId)
+        public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetPostsByUserAsync(string userId, PostFilter filter)
         {
-            var posts = await _postsRepository.SearchAsync(p => p.UserId != userId);
-            return _mapper.Map<List<PostWithTagsDto>>(posts);
-        }
+            var query = _postsRepository.GetQuery().Where(p => p.UserId == userId);
 
-        public async Task<IEnumerable<PostWithTagsDto>> GetPostsByUser(string userId)
-        {
-            var posts = await _postsRepository.SearchAsync(p => p.UserId == userId);
-            return _mapper.Map<List<PostWithTagsDto>>(posts);
+            var count = await query.CountAsync();
+
+            var posts = await query
+               .Skip((filter.PageNumber - 1) * filter.PageSize)
+               .Take(filter.PageSize)
+               .ToListAsync();
+            var data = _mapper.Map<IEnumerable<PostWithTagsDto>>(posts);
+
+            var totalPages = Convert.ToInt32(Math.Ceiling((decimal)count / filter.PageSize));
+
+            var response = new PageResponse<IEnumerable<PostWithTagsDto>>(data, filter.PageNumber, filter.PageSize)
+            {
+                TotalItems = count,
+                TotalPages = totalPages
+            };
+
+            return response;
         }
 
         public async Task<PostWithTagsDto?> GetPostByIdAsync(Guid id)

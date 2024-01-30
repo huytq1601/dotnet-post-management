@@ -51,7 +51,7 @@ namespace EnityFrameworkRelationShip.Services
 
         public async Task<IEnumerable<PostWithTagsDto>> GetPostsByUser(string userId)
         {
-            var posts = await _postRepository.SearchAsync(p => p.UserId == userId);
+            var posts = await _postRepository.FindManyAsync(p => p.UserId == userId);
             return _mapper.Map<List<PostWithTagsDto>>(posts);
         }
 

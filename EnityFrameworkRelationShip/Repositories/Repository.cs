@@ -16,12 +16,17 @@ namespace EnityFrameworkRelationShip.Repositories
             _table = context.Set<T>();
         }
 
+        public IQueryable<T> GetQuery()
+        {
+            return _table.AsQueryable();
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _table.AsNoTracking().ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> SearchAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> FindManyAsync(Expression<Func<T, bool>> predicate)
         {
             return await _table.AsNoTracking().Where(predicate).ToListAsync();
         }

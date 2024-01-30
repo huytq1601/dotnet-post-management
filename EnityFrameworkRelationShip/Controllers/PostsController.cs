@@ -1,4 +1,5 @@
-﻿using EnityFrameworkRelationShip.Dtos.Post;
+﻿using EnityFrameworkRelationShip.Common;
+using EnityFrameworkRelationShip.Dtos.Post;
 using EnityFrameworkRelationShip.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +22,28 @@ namespace EnityFrameworkRelationShip.Controllers
         // GET: api/Posts
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetPosts([FromQuery(Name = "tag")] string? tag = null)
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetPosts([FromQuery] PostFilter filter)
         {
-            var postWithTagsDtos = await (tag != null ? _postsService.GetAllPostsAsync(tag) : _postsService.GetAllPostsAsync());
-            return Ok(postWithTagsDtos);
+            var response = await _postsService.GetAllPostsAsync(filter);
+            return Ok(response);
         }
 
         [HttpGet("others")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<PostWithTagsDto>>> GetOtherUserPosts()
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetOtherUserPosts([FromQuery] PostFilter filter)
         {
             var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
-            var postWithTagsDtos = await _postsService.GetPostsOfOtherAsync(currentUserId);
-            return Ok(postWithTagsDtos);
+            var response = await _postsService.GetPostsOfOtherAsync(currentUserId, filter);
+            return Ok(response);
+        }
+
+        [HttpGet("currentUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetCurrentrUserPosts([FromQuery] PostFilter filter)
+        {
+            var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
+            var response = await _postsService.GetPostsByUserAsync(currentUserId, filter);
+            return Ok(response);
         }
 
         // GET: api/Posts/5
