@@ -6,12 +6,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PostManagement.Core.Entities;
 using PostManagement.Infrastructure.Data;
-using PostManagement.Infrastructure.Mappings;
 using PostManagement.Infrastructure.Extensions;
+using PostManagement.Application;
 using System.Text;
 using PostManagement.WebApi.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using PostManagement.WebApi.Filters;
+using PostManagement.Infrastructure.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-         builder => builder.MigrationsAssembly(typeof(DataContext).Assembly.FullName));
+          b => b.MigrationsAssembly("PostManagement.Infrastructure"));
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

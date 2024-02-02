@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Hosting;
 using PostManagement.Application.Dtos.Post;
 using PostManagement.Application.Interfaces;
 using PostManagement.Core.Common;
@@ -38,7 +36,16 @@ namespace PostManagement.Application.Services
 
             //return _mapper.Map<List<PostWithTagsDto>>(posts);
 
-            Expression<Func<Post, bool>> filterExpression = p => p.Tags.Any(t => t.Name.Contains(filter.Tag ?? ""));
+            Expression<Func<Post, bool>> filterExpression;
+
+            if (filter.Tag != null)
+            {
+                filterExpression = p => p.Tags.Any(t => t.Name.Contains(filter.Tag));
+            }
+            else
+            {
+                filterExpression = p => p.IsDeleted == false;
+            }
 
             var response = await GetPageResponseAsync(filter, filterExpression);
 
@@ -47,7 +54,16 @@ namespace PostManagement.Application.Services
 
         public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetPostsOfOtherAsync(string userId, PostFilter filter)
         {
-            Expression<Func<Post, bool>> filterExpression = p => p.UserId != userId && p.Tags.Any(t => t.Name.Contains(filter.Tag ?? ""));
+            Expression<Func<Post, bool>> filterExpression;
+
+            if(filter.Tag != null)
+            {
+                filterExpression = p => p.UserId != userId && p.Tags.Any(t => t.Name.Contains(filter.Tag));
+            }
+            else
+            {
+                filterExpression = p => p.UserId != userId;
+            }
            
             var response = await GetPageResponseAsync(filter, filterExpression);
 
@@ -56,7 +72,16 @@ namespace PostManagement.Application.Services
 
         public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetPostsByUserAsync(string userId, PostFilter filter)
         {
-            Expression<Func<Post, bool>> filterExpression = p => p.UserId == userId && p.Tags.Any(t => t.Name.Contains(filter.Tag ?? ""));
+            Expression<Func<Post, bool>> filterExpression;
+
+            if (filter.Tag != null)
+            {
+                filterExpression = p => p.UserId == userId && p.Tags.Any(t => t.Name.Contains(filter.Tag));
+            }
+            else
+            {
+                filterExpression = p => p.UserId == userId;
+            }
 
             var response = await GetPageResponseAsync(filter, filterExpression);
 
@@ -97,12 +122,34 @@ namespace PostManagement.Application.Services
 
             var tagNames = postDto.Tags ?? new List<string>();
 
-            await HandleTagsAsync(post, tagNames);
+            var tags = new List<Tag>();
+
+            foreach (var tagName in tagNames)
+            {
+                var tag = await _tagsRepository.FindOneAsync(t => t.Name == tagName);
+
+                if (tag == null)
+                {
+                    // If tag doesn't exist, create it and add it to the database
+                    var newTag = new Tag { Name = tagName };
+                    await _tagsRepository.CreateAsync(newTag); // Assuming you have a method to create tags
+                    tags.Add(newTag);
+                }
+                else if (tag.IsDeleted)
+                {
+                    tag.IsDeleted = false;
+                    await _tagsRepository.UpdateAsync(tag);
+                }
+                else
+                {
+                    tags.Add(tag);
+                }
+            }
+
+            post.Tags = tags;
 
             await _postsRepository.CreateAsync(post);
-
-            _cacheService.RemoveByPrefix(_cachePrefix);
-
+            await _postsRepository.SaveChangesAsync();
             return _mapper.Map<PostWithTagsDto>(post);
         }
 
@@ -122,8 +169,6 @@ namespace PostManagement.Application.Services
             await HandleTagsAsync(post, updatedTagNames);
 
             await _postsRepository.UpdateAsync(post);
-
-            _cacheService.RemoveByPrefix(_cachePrefix);
         }
 
         public async Task DeletePostAsync(Guid id)
@@ -175,7 +220,7 @@ namespace PostManagement.Application.Services
             }
 
             var existingTagNames = post.Tags.Select(tag => tag.Name);
-            var tagNamesToAdd = tagNames.Except(existingTagNames);
+            var tagNamesToAdd = tagNames.Except(existingTagNames).ToList();
 
             foreach (var tagName in tagNamesToAdd)
             {

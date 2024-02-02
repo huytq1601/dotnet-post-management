@@ -16,6 +16,11 @@ namespace PostManagement.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Post>()
+               .HasMany(p => p.Tags)
+               .WithMany(t => t.Posts)
+               .UsingEntity(j => j.ToTable("PostTags"));
+
             modelBuilder.Entity<Post>().HasQueryFilter(p => !p.IsDeleted);
             modelBuilder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
 

@@ -24,9 +24,9 @@ namespace PostManagement.Application.Services
             _postRepository = postRepository;
         }
 
-        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync(string userId)
         {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.Where(u => u.Id != userId).ToListAsync();
             var userDtos = _mapper.Map<IList<UserDto>>(users);
 
             for (var i = 0; i < users.Count; i++)
