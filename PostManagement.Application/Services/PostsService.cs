@@ -190,6 +190,7 @@ namespace PostManagement.Application.Services
             var posts = await query
                .Skip((filter.PageNumber - 1) * filter.PageSize)
                .Take(filter.PageSize)
+               .Include(p => p.User)
                .ToListAsync();
 
             var data = _mapper.Map<IEnumerable<PostWithTagsDto>>(posts);

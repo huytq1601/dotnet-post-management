@@ -25,9 +25,9 @@ public class Permissions
 
     public static class Roles
     {
-        public const string CanRead = "Tags.CanRead";
-        public const string CanWrite = "Tags.CanWrite";
-        public const string CanDelete = "Tags.CanDelete";
+        public const string CanRead = "Roles.CanRead";
+        public const string CanWrite = "Roles.CanWrite";
+        public const string CanDelete = "Roles.CanDelete";
     }
 
     public static IEnumerable<string> GetAllPermissions()
@@ -38,13 +38,10 @@ public class Permissions
         {
             foreach (var field in nestedClass.GetFields())
             {
-                if (field.IsLiteral && !field.IsInitOnly)
+                var fieldValue = field.GetValue(null);
+                if (fieldValue != null)
                 {
-                    var fieldValue = field.GetValue(null);
-                    if (fieldValue != null)
-                    {
-                        permissions.Add((string)fieldValue);
-                    }
+                    permissions.Add((string)fieldValue);
                 }
             }
         }
@@ -60,7 +57,6 @@ public class Permissions
         if (nestedClass != null)
         {
             permissions.AddRange(nestedClass.GetFields()
-                .Where(field => field.IsLiteral && !field.IsInitOnly)
                 .Select(field => (string?)field.GetValue(null))
                 .Where(permission => permission != null)
                 .Select(permission => permission!));

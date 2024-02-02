@@ -5,7 +5,6 @@ using PostManagement.Application.Interfaces;
 using PostManagement.Core.Common;
 using PostManagement.Core.Exceptions;
 
-
 namespace PostManagement.WebApi.Controllers
 {
     [Route("api/[controller]")]
@@ -21,6 +20,7 @@ namespace PostManagement.WebApi.Controllers
 
         // GET: api/Posts
         [HttpGet]
+        [Authorize(Policy = Permissions.Posts.CanRead)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetPosts([FromQuery] PostFilter filter)
         {
@@ -29,6 +29,7 @@ namespace PostManagement.WebApi.Controllers
         }
 
         [HttpGet("others")]
+        [Authorize(Policy = Permissions.Posts.CanRead)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetOtherUserPosts([FromQuery] PostFilter filter)
         {
@@ -38,6 +39,7 @@ namespace PostManagement.WebApi.Controllers
         }
 
         [HttpGet("currentUser")]
+        [Authorize(Policy = Permissions.Posts.CanRead)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<PageResponse<IEnumerable<PostWithTagsDto>>>> GetCurrentrUserPosts([FromQuery] PostFilter filter)
         {
@@ -48,6 +50,7 @@ namespace PostManagement.WebApi.Controllers
 
         // GET: api/Posts/5
         [HttpGet("{id}")]
+        [Authorize(Policy = Permissions.Posts.CanRead)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PostWithTagsDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Response<PostWithTagsDto>>> GetPost(Guid id)
@@ -58,6 +61,7 @@ namespace PostManagement.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = Permissions.Posts.CanWrite)]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PostWithTagsDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PostWithTagsDto>> CreatePost(PostDto postDto)
@@ -74,6 +78,7 @@ namespace PostManagement.WebApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = Permissions.Posts.CanWrite)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -90,6 +95,7 @@ namespace PostManagement.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = Permissions.Posts.CanDelete)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeletePost(Guid id)

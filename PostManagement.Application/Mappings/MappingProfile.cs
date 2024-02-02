@@ -15,8 +15,13 @@ namespace PostManagement.Infrastructure.Mappings
             CreateMap<Tag, TagDto>().ReverseMap();
 
             CreateMap<Post, PostWithTagsDto>()
-                .ForMember(dest => dest.Tags,
-                    opt => opt.MapFrom(src => src.Tags.Select(tag => tag.Name)));
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(tag => tag.Name)))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => new SimpleUserDto
+                {
+                     Id = src.UserId,
+                     FullName = $"{src.User.FirstName} {src.User.LastName}",
+                     UserName = src.User.UserName
+                }));
 
             CreateMap<ApplicationUser, UserDto>();
 

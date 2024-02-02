@@ -1,9 +1,11 @@
-﻿namespace PostManagement.Application.Dtos.Post
+﻿using PostManagement.Application.Dtos.User;
+
+namespace PostManagement.Application.Dtos.Post
 {
     public class PostWithTagsDto : PostDto
     {
         public Guid Id { get; set; }
         public DateTime DatePublished { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public SimpleUserDto User { get; set; } = null!;
     }
 }

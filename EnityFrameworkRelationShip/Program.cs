@@ -13,6 +13,9 @@ using PostManagement.WebApi.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using PostManagement.WebApi.Filters;
 using PostManagement.Infrastructure.Mappings;
+using PostManagement.Core.Common;
+using PostManagement.Infrastructure.Authorization;
+using PostManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,7 +70,7 @@ builder.Services.AddSwaggerGen(c =>
 //builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddRepositoryServices();
+builder.Services.AddInfrastructureDependencies();
 builder.Services.AddBusinessServices();
 
 builder.Services.AddMemoryCache();
@@ -89,6 +92,15 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Permissions.GetAllPermissions())
+    {
+        options.AddPolicy(permission, policy =>
+            policy.Requirements.Add(new PermissionRequirement(permission)));
+    }
 });
 
 builder.Services.AddCors(options =>

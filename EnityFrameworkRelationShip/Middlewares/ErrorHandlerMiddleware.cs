@@ -28,6 +28,11 @@ namespace PostManagement.WebApi.Middlewares
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;
                 await context.Response.WriteAsJsonAsync(new Response<object> { Success = false, Message = ex.Message });
             }
+            catch(ForbiddenException)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsJsonAsync(new Response<object> { Success = false, Message = "You don't have permission to do this action." });
+            }
             catch (UnauthorizedAccessException)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
