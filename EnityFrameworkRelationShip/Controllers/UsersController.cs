@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PostManagement.Application.Dtos.Post;
 using PostManagement.Application.Dtos.User;
 using PostManagement.Application.Interfaces;
 
@@ -22,7 +21,8 @@ namespace PostManagement.WebApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            var users = await _usersService.GetAllUsersAsync();
+            var currentUserId = User.Claims.FirstOrDefault(c => c.Type == "uid")!.Value;
+            var users = await _usersService.GetAllUsersAsync(currentUserId);
             return Ok(users);
         }
 

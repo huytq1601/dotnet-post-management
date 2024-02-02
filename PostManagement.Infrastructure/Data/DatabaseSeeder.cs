@@ -19,6 +19,7 @@ namespace PostManagement.Infrastructure.Data
 
                 await userManager.CreateAsync(user, "Password@123");
                 await userManager.AddToRoleAsync(user, "User");
+                await userManager.AddToRoleAsync(user, "Admin");
 
                 var posts = new List<Post>()
                 {

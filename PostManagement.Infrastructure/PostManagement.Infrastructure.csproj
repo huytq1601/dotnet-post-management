@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PostManagement.Application\PostManagement.Application.csproj" />
     <ProjectReference Include="..\PostManagement.Core\PostManagement.Core.csproj" />
   </ItemGroup>
 

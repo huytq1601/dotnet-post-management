@@ -38,7 +38,7 @@ namespace PostManagement.Infrastructure.Repositories
 
         public async Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _table.AsNoTracking().Where(predicate).FirstOrDefaultAsync();
+            return await _table.Where(predicate).FirstOrDefaultAsync();
         }
 
         public async Task CreateAsync(T entity)
@@ -56,6 +56,11 @@ namespace PostManagement.Infrastructure.Repositories
         public async Task DeleteAsync(T entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
             await _context.SaveChangesAsync();
         }
     }
