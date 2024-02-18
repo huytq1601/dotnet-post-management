@@ -57,6 +57,21 @@ namespace PostManagement.WebApi.Controllers
             return Ok(permissions);
         }
 
+        [HttpGet("{id}/permissions")]
+        public async Task<ActionResult<IEnumerable<string>>> GetPermissionByRole(string id)
+        {
+            var role = await _roleManager.FindByIdAsync(id);
+
+            if (role == null)
+            {
+                throw new NotFoundException("Role Not Found");
+            }
+
+            var allClaims = await _roleManager.GetClaimsAsync(role);
+            var permissions = allClaims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
+            return Ok(permissions);
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(string id, [FromBody] RoleDto roleDto)
         {

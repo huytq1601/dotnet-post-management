@@ -31,11 +31,6 @@ namespace PostManagement.Application.Services
 
         public async Task<PageResponse<IEnumerable<PostWithTagsDto>>> GetAllPostsAsync(PostFilter filter)
         {
-            //var cacheKey = GetCacheKey();
-            //var posts = await GetOrSetCacheAsync(cacheKey, () => _postsRepository.GetAllAsync());
-
-            //return _mapper.Map<List<PostWithTagsDto>>(posts);
-
             Expression<Func<Post, bool>> filterExpression;
 
             if (filter.Tag != null)
@@ -132,7 +127,7 @@ namespace PostManagement.Application.Services
                 {
                     // If tag doesn't exist, create it and add it to the database
                     var newTag = new Tag { Name = tagName };
-                    await _tagsRepository.CreateAsync(newTag); // Assuming you have a method to create tags
+                    await _tagsRepository.CreateAsync(newTag);
                     tags.Add(newTag);
                 }
                 else if (tag.IsDeleted)

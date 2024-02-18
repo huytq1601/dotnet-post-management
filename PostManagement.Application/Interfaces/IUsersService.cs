@@ -6,8 +6,8 @@ namespace PostManagement.Application.Interfaces
     public interface IUsersService
     {
         Task<IEnumerable<UserDto>> GetAllUsersAsync(string userId);
-        Task<UserDto?> GetUserByIdAsync(string id);
-        Task<AssignResultDto> AssignRoleAsync(AssignRoleDto assignRoleDto);
+        Task<UserWithPermissionsDto?> GetUserByIdAsync(string id);
+        Task UpdateUserAsync(UserDto userDto);
         Task<bool> DeleteUserAsync(string userId);
     }
 }

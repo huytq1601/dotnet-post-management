@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PostManagement.Application.Dtos.Post;
 using PostManagement.Application.Dtos.User;
 using PostManagement.Application.Interfaces;
 using PostManagement.Core.Entities;
+using PostManagement.Core.Exceptions;
 using PostManagement.Core.Interfaces;
 
 namespace PostManagement.Application.Services
@@ -14,14 +14,12 @@ namespace PostManagement.Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
-        private readonly IRepository<Post> _postRepository;
 
         public UsersService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IRepository<Post> postRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
-            _postRepository = postRepository;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync(string userId)
@@ -37,7 +35,7 @@ namespace PostManagement.Application.Services
             return userDtos;
         }
 
-        public async Task<UserDto?> GetUserByIdAsync(string id)
+        public async Task<UserWithPermissionsDto?> GetUserByIdAsync(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
@@ -45,49 +43,57 @@ namespace PostManagement.Application.Services
                 return null;
             }
 
-            var userDto = _mapper.Map<UserDto>(user);
+            var userDto = _mapper.Map<UserWithPermissionsDto>(user);
+
             userDto.Roles = await _userManager.GetRolesAsync(user);
+            var permissions = new HashSet<string>();
+
+            foreach (var roleName in userDto.Roles)
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                var allClaims = await _roleManager.GetClaimsAsync(role);
+                var rolePermissions = allClaims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
+                permissions.UnionWith(rolePermissions);
+            }
+
+            userDto.Permissions = permissions;
+
             return userDto;
         }
 
-        public async Task<AssignResultDto> AssignRoleAsync(AssignRoleDto assignRoleDto)
+        public async Task UpdateUserAsync(UserDto userDto)
         {
-            var result = new AssignResultDto();
 
-            var user = await _userManager.FindByIdAsync(assignRoleDto.UserId);
+            var user = await _userManager.FindByIdAsync(userDto.Id);
 
             if (user == null)
             {
-                result.Errors.Add("User not found.");
-                return result;
+                throw new NotFoundException("User not found.");
             }
 
-            var role = await _roleManager.FindByIdAsync(assignRoleDto.RoleId);
-
-            if (role == null)
-            {
-                result.Errors.Add("Role not found.");
-                return result;
-            }
+            user.FirstName = userDto.FirstName; 
+            user.LastName = userDto.LastName;
+            user.Email = userDto.Email;
+            user.PhoneNumber = userDto.PhoneNumber;
+            user.UserName = userDto.UserName;
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            if (userRoles.Contains(role.Name!))
+            var rolesToDelete = userRoles.Except(userDto.Roles).ToList();
+            var rolesToAdd = userDto.Roles.Except(userRoles).ToList();
+
+
+            foreach (var role in rolesToDelete)
             {
-                result.Errors.Add("User already assigned to the role.");
-                return result;
+                await _userManager.RemoveFromRoleAsync(user, role);
             }
 
-            var identityResult = await _userManager.AddToRoleAsync(user, role.Name!);
-
-            if (!identityResult.Succeeded)
+            foreach(var role in rolesToAdd)
             {
-                result.Errors.AddRange(identityResult.Errors.Select(e => e.Description));
-                return result;
+                await _userManager.AddToRoleAsync(user, role);
             }
 
-            result.Success = true;
-            return result;
+            await _userManager.UpdateAsync(user);
         }
 
         public async Task<bool> DeleteUserAsync(string id)

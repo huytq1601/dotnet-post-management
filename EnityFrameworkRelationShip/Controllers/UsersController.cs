@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using PostManagement.Application.Dtos.User;
 using PostManagement.Application.Interfaces;
+using PostManagement.Core.Common;
+using PostManagement.Core.Exceptions;
 
 namespace PostManagement.WebApi.Controllers
 {
@@ -17,7 +19,7 @@ namespace PostManagement.WebApi.Controllers
             _usersService = usersService;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = Permissions.Users.CanRead)]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
@@ -36,24 +38,14 @@ namespace PostManagement.WebApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> AssignRoles(string id, [FromBody] AssignRoleDto assignRoleDto)
+        public async Task<ActionResult> UpdateUser(string id, [FromBody] UserDto userDto)
         {
-            if (assignRoleDto == null || assignRoleDto.UserId != id)
+            if (userDto == null || userDto.Id != id)
             {
-                return BadRequest("Invalid user data");
+                throw new BadRequestException("Invalid user data");
             }
 
-            var result = await _usersService.AssignRoleAsync(assignRoleDto);
-
-            if (!result.Success)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("errors", error);
-                }
-
-                return BadRequest(ModelState);
-            }
+            await _usersService.UpdateUserAsync(userDto);
 
             return NoContent();
         }

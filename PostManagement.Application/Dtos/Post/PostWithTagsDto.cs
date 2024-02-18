@@ -6,6 +6,6 @@ namespace PostManagement.Application.Dtos.Post
     {
         public Guid Id { get; set; }
         public DateTime DatePublished { get; set; }
-        public SimpleUserDto User { get; set; } = null!;
+        public SimpleUserDto Author { get; set; } = null!;
     }
 }

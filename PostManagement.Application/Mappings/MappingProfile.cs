@@ -16,14 +16,16 @@ namespace PostManagement.Infrastructure.Mappings
 
             CreateMap<Post, PostWithTagsDto>()
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(tag => tag.Name)))
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => new SimpleUserDto
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => new SimpleUserDto
                 {
                      Id = src.UserId,
                      FullName = $"{src.User.FirstName} {src.User.LastName}",
-                     UserName = src.User.UserName
+                     UserName = src.User.UserName!
                 }));
 
             CreateMap<ApplicationUser, UserDto>();
+
+            CreateMap<ApplicationUser, UserWithPermissionsDto>();
 
             CreateMap<IdentityRole, RoleDto>();
 

@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using PostManagement.Core.Common;
 using PostManagement.Core.Entities;
+using System.Security.Claims;
+using System.Security;
+using System.Runtime.ConstrainedExecution;
 
 namespace PostManagement.Infrastructure.Data
 {
@@ -76,6 +80,24 @@ namespace PostManagement.Infrastructure.Data
                     if (!roleResult.Succeeded)
                     {
                         throw new Exception("Failed to create role: " + roleName);
+                    }
+
+                    if (roleName == "Admin")
+                    {
+                        var permissions = Permissions.GetAllPermissions();
+                        foreach (var permission in permissions)
+                        {
+                            await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                        }
+                    }
+
+                    if (roleName == "User")
+                    {
+                        var permissions = Permissions.GetPermissionsByClass("Posts");
+                        foreach (var permission in permissions)
+                        {
+                            await roleManager.AddClaimAsync(role, new Claim("Permission", permission));
+                        }
                     }
                 }
             }
